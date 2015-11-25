@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">PopularMovies</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
+    <string name="title_activity_details">DetailsActivity</string>
+    <string name="title_activity_settings">SettingsActivity</string>
+    <string name="pref_sort_default">Popular</string>
+    <string name="key_sort_order">sort_order</string>
+    <string name="key_num_items_pref">number_of_movies</string>
+    <string name="num_movies_pref_title">Number of Movies</string>
+    <string name="num_items_default_value">50</string>
+</resources>

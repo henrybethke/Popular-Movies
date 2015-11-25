@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <ListPreference
+        android:key="@string/key_sort_order"
+        android:title="Sort movies by"
+        android:defaultValue="@string/pref_sort_default"
+        android:entries="@array/pref_sort_entries"
+        android:entryValues="@array/pref_sort_values"
+        />
+
+    <EditTextPreference
+        android:key="@string/key_num_items_pref"
+        android:title="@string/num_movies_pref_title"
+        android:defaultValue="@string/num_items_default_value"
+        android:inputType="text"
+        android:numeric="integer"/>
+
+</PreferenceScreen>
