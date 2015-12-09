@@ -1,5 +1,6 @@
 package com.example.henrybethke.popularmovies;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
@@ -18,7 +19,13 @@ import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
 import com.squareup.okhttp.Response;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.IOException;
+import java.util.Calendar;
+import java.util.Date;
 
 import static com.example.henrybethke.popularmovies.R.string.key_sort_order;
 
@@ -33,7 +40,7 @@ public class MainActivityFragment extends Fragment {
     private ImageAdapter mAdapter;
     private String mSortPreference;
     private int mNumItemsPreference;
-    String mJson;
+    private Movie[] mMovies;
 
     public MainActivityFragment() {
     }
@@ -50,19 +57,24 @@ public class MainActivityFragment extends Fragment {
         super.onResume();
         setPreferences();
 
-        setGridView();
+        downloadImages();
+        if(mMovies != null) setGridView();
+        Log.d(TAG, "onResume() called");
     }
 
+    @Override
+    public void onStart() {
+        super.onStart();
+        Log.d(TAG, "onStart() called");
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        Log.d(TAG, "onCreateView() called");
         View v = inflater.inflate(R.layout.fragment_main, container, false);
 
         mGridView = (GridView)v.findViewById(R.id.movie_gridview);
-
-
-        setGridView();
 
         mGridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -70,29 +82,47 @@ public class MainActivityFragment extends Fragment {
                 Intent intent = new Intent(getActivity(), DetailsActivity.class);
                 String text = mAdapter.getItem(position);
                 intent.putExtra(Intent.EXTRA_TEXT, text);
+                intent.putExtra("movie", mMovies[position]);
                 startActivity(intent);
             }
         });
 
+        downloadImages();
+
+        return v;
+    }
+
+    private void downloadImages() {
         final String BASE_URL = "http://api.themoviedb.org/3/discover/movie?";
         final String API_KEY = "api_key";
         String apiKey = "231626b579fe5a025e8ad3f3c1f3332a";
         final String SORT_PARAM = "sort_by";
+        final String RELEASE_DATE_PARAM = "primary_release_date.gte";
 
-        //TODO clean this up, use string resources
+        //TODO: let user pick this parameter using date picker dialog
+        Calendar releaseDate = Calendar.getInstance();
+        releaseDate.add(Calendar.YEAR, -1);
+        String releaseDateString = releaseDate.get(Calendar.YEAR) + "-"
+                + releaseDate.get(Calendar.DAY_OF_MONTH) + "-"
+                + releaseDate.get(Calendar.MONTH);
+
+        //TODO: clean this up, use string resources - this is kinda crappy
+        //TODO: vote_average results vary a lot because lots of movies have perfect ratings
         String sortBy = "";
-        if(mSortPreference.equals("Highest Rated")){
-            sortBy = "vote_average";
-        }else if(mSortPreference.equals("Popular")){
+        if(mSortPreference.equals("Popular")){
             sortBy = "popularity";
+        }else{
+            sortBy = "vote_average";
         }
 
+        //TODO add parameter to get recent movies
         Uri uri = Uri.parse(BASE_URL).buildUpon()
                 .appendQueryParameter(API_KEY, apiKey)
-                .appendQueryParameter(SORT_PARAM, sortBy)
+                .appendQueryParameter(SORT_PARAM, sortBy + ".desc")
+                .appendQueryParameter(RELEASE_DATE_PARAM, releaseDateString)
                 .build();
 
-        String builtUri = uri.toString() + ".desc";
+        String builtUri = uri.toString();
         Log.d(TAG, "builtUri: " + builtUri);
 
         OkHttpClient client = new OkHttpClient();
@@ -110,25 +140,48 @@ public class MainActivityFragment extends Fragment {
                 if(!response.isSuccessful()){
                     throw new IOException("response not successful: " + response);
                 }
-                Log.d(TAG, "response: " + response.body().string());
-                mJson = response.body().string();
+                String json = "";
+                json = response.body().string();
+                try {
+                    mMovies = getMoviesFromJson(json);
+                    getActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            setGridView();
+                        }
+                    });
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
             }
         });
+    }
 
-        return v;
+    private Movie[] getMoviesFromJson(String json) throws JSONException{
+        JSONObject obj = new JSONObject(json);
+        JSONArray results = obj.getJSONArray("results");
+        Movie[] movies = new Movie[results.length()];
+        Log.d(TAG, "results lenght: " + results.length());
+        for(int i = 0; i < results.length(); i++){
+            Movie movie = new Movie();
+            JSONObject jsonMovie = results.getJSONObject(i);
+            movie.setTitle(jsonMovie.getString("original_title"));
+            movie.setOverview(jsonMovie.getString("overview"));
+            movie.setPosterPath(jsonMovie.getString("poster_path"));
+            movie.setReleaseDate(jsonMovie.getString("release_date"));
+            movie.setVoteAverage(jsonMovie.getInt("vote_average"));
+            movies[i] = movie;
+        }
+
+        return movies;
     }
 
     private void setGridView() {
-        mAdapter = new ImageAdapter(getActivity(), new String[] {
-                "test1",
-                "test2",
-                "test3",
-                "test4",
-                "test5",
-                "test6",
-                "test7",
-                mSortPreference
-        });
+        String[] imagePaths = new String[mMovies.length];
+        for(int i = 0; i < mMovies.length; i++){
+            imagePaths[i] = mMovies[i].getPosterPath();
+        }
+        mAdapter = new ImageAdapter(getActivity(), imagePaths);
         mGridView.setAdapter(mAdapter);
     }
 

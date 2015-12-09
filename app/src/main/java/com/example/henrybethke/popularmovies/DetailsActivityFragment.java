@@ -1,12 +1,14 @@
 package com.example.henrybethke.popularmovies;
 
-import android.content.Intent;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
+
+import com.squareup.picasso.Picasso;
 
 /**
  * A placeholder fragment containing a simple view.
@@ -14,9 +16,12 @@ import android.widget.TextView;
 public class DetailsActivityFragment extends Fragment {
     public static final String TAG = DetailsActivityFragment.class.getSimpleName();
 
-
-    private TextView mTextView;
-
+    private Movie mMovie;
+    private TextView mTitleText;
+    private ImageView mPosterImage;
+    private TextView mOverviewText;
+    private TextView mReleaseDateText;
+    private TextView mRatingText;
 
     public DetailsActivityFragment() {
     }
@@ -26,9 +31,19 @@ public class DetailsActivityFragment extends Fragment {
                              Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_details, container, false);
 
-        mTextView = (TextView)v.findViewById(R.id.test_detail_textview);
+        mTitleText = (TextView)v.findViewById(R.id.titleTextview);
+        mPosterImage = (ImageView)v.findViewById(R.id.posterImageview);
+        mOverviewText = (TextView)v.findViewById(R.id.overviewTextview);
+        mReleaseDateText = (TextView)v.findViewById(R.id.releaseDateTextview);
+        mRatingText = (TextView)v.findViewById(R.id.ratingTextview);
 
-        mTextView.setText("placeholder detail text: " + getActivity().getIntent().getStringExtra(Intent.EXTRA_TEXT));
+        mMovie = getActivity().getIntent().getParcelableExtra("movie");
+        getActivity().setTitle(mMovie.getTitle());
+        mTitleText.setText(mMovie.getTitle());
+        Picasso.with(getActivity()).load("http://image.tmdb.org/t/p/w500" + mMovie.getPosterPath()).into(mPosterImage);
+        mOverviewText.setText(mMovie.getOverview());
+        mReleaseDateText.setText("Release date: " + mMovie.getReleaseDate());
+        mRatingText.setText("User rating: " + mMovie.getVoteAverage() + "/10");
 
         return v;
     }
