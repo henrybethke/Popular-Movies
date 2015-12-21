@@ -103,8 +103,8 @@ public class MainActivityFragment extends Fragment {
         Calendar releaseDate = Calendar.getInstance();
         releaseDate.add(Calendar.YEAR, -1);
         String releaseDateString = releaseDate.get(Calendar.YEAR) + "-"
-                + releaseDate.get(Calendar.DAY_OF_MONTH) + "-"
-                + releaseDate.get(Calendar.MONTH);
+                + releaseDate.get(Calendar.MONTH) + "-"
+                + releaseDate.get(Calendar.DAY_OF_MONTH);
 
         //TODO: clean this up, use string resources - this is kinda crappy
         //TODO: vote_average results vary a lot because lots of movies have perfect ratings
@@ -122,12 +122,11 @@ public class MainActivityFragment extends Fragment {
                 .appendQueryParameter(RELEASE_DATE_PARAM, releaseDateString)
                 .build();
 
-        String builtUri = uri.toString();
-        Log.d(TAG, "builtUri: " + builtUri);
+        //String builtUri = uri.toString();
 
         OkHttpClient client = new OkHttpClient();
         final Request request = new Request.Builder()
-                .url(builtUri)
+                .url(uri.toString())
                 .build();
         client.newCall(request).enqueue(new Callback() {
             @Override
@@ -144,12 +143,14 @@ public class MainActivityFragment extends Fragment {
                 json = response.body().string();
                 try {
                     mMovies = getMoviesFromJson(json);
-                    getActivity().runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            setGridView();
-                        }
-                    });
+                    if(getActivity() != null) {
+                        getActivity().runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                setGridView();
+                            }
+                        });
+                    }
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
