@@ -39,7 +39,6 @@ public class MainActivityFragment extends Fragment {
     private GridView mGridView;
     private ImageAdapter mAdapter;
     private String mSortPreference;
-    private int mNumItemsPreference;
     private Movie[] mMovies;
 
     public MainActivityFragment() {
@@ -102,9 +101,10 @@ public class MainActivityFragment extends Fragment {
         //TODO: let user pick this parameter using date picker dialog
         Calendar releaseDate = Calendar.getInstance();
         releaseDate.add(Calendar.YEAR, -1);
+        int month = releaseDate.get(Calendar.MONTH) + 1;  //index starts at 0
         String releaseDateString = releaseDate.get(Calendar.YEAR) + "-"
-                + releaseDate.get(Calendar.MONTH) + "-"
-                + releaseDate.get(Calendar.DAY_OF_MONTH);
+                + month + "-"
+                + releaseDate.get(Calendar.DAY_OF_MONTH );
 
         //TODO: clean this up, use string resources - this is kinda crappy
         //TODO: vote_average results vary a lot because lots of movies have perfect ratings
@@ -178,7 +178,7 @@ public class MainActivityFragment extends Fragment {
     }
 
     private void setGridView() {
-        String[] imagePaths = new String[mMovies.length];
+ rm       String[] imagePaths = new String[mMovies.length];
         for(int i = 0; i < mMovies.length; i++){
             imagePaths[i] = mMovies[i].getPosterPath();
         }
@@ -190,7 +190,5 @@ public class MainActivityFragment extends Fragment {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
         mSortPreference = prefs.getString(getResources().getString(R.string.key_sort_order),
                 getResources().getString(R.string.pref_sort_default));
-        mNumItemsPreference = Integer.parseInt(prefs.getString(getResources().getString(R.string.key_num_items_pref),
-                getResources().getString(R.string.num_items_default_value)));
     }
 }
